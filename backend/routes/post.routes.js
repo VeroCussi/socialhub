@@ -1,20 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/post.controller');
+const multer = require('../middleware/multer-config');
+const auth = require('../middleware/auth.middleware');
 
-// Ruta para crear un nuevo post
-router.post('/', postController.createPost);
+// Route pour créer un nouveau post avec une image
+router.post('/', auth, multer, postController.createPost);
 
-// Ruta para obtener todos los posts
+// Route pour obtenir tous les posts
 router.get('/', postController.getAllPosts);
 
-// Ruta para obtener un post por ID
+// Route pour obtenir un post par ID
 router.get('/:id', postController.getPostById);
 
-// Ruta para actualizar un post
-router.put('/:id', postController.updatePost);
+// Route pour mettre à jour un post
+router.put('/:id', auth, multer, postController.updatePost);
 
-// Ruta para eliminar un post
-router.delete('/:id', postController.deletePost);
+// Route pour supprimer un post
+router.delete('/:id', auth, multer, postController.deletePost);
 
 module.exports = router;

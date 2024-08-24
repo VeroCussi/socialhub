@@ -3,36 +3,45 @@ const { Schema } = mongoose;
 const uniqueValidator = require('mongoose-unique-validator');
 
 const userSchema = new Schema({
-
   username: {
     type: String,
     required: true,
     unique: true,
-    trim: true,      // Supprime les espaces en début et en fin de chaîne
-    lowercase: true  // Convertit la chaîne en minuscules
+    trim: true,
+    lowercase: true
   },
   email: {
     type: String,
     required: true,
     unique: true,
-    trim: true,      // Supprime les espaces en début et en fin de chaîne
-    lowercase: true, // Convertit la chaîne en minuscules
+    trim: true,
+    lowercase: true,
   },
   password: {
     type: String,
-    required: true,  // Le mot de passe est requis
+    required: true,
   },
   role: {
     type: String,
-    enum: ['user', 'admin'], // Définit les rôles possibles
-    default: 'user',         // Le rôle par défaut est "user"
+    enum: ['user', 'admin'], // Roles disponibles
+    default: 'user',         // Rol por defecto
   },
+  permissions: {
+    type: [String],
+    default: function() {
+      return this.role === 'admin' ? ['manage_posts', 'manage_users', 'manage_comments'] : [];
+    },
+    enum: ['manage_users', 'manage_posts', 'manage_comments', 'manage_roles'], // Permisos posibles
+  },
+  image: {
+    type: String,
+    default: "image.jpg",
+  }
 }, {
-  timestamps: true, // Ajoute automatiquement les champs createdAt et updatedAt
+  timestamps: true, // Campos createdAt y updatedAt automáticos
 });
 
-// Ajoute une validation unique pour les champs "unique"
+// Agrega la validación de campos únicos
 userSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model('User', userSchema);
-

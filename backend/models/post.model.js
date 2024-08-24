@@ -2,23 +2,23 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const postSchema = new Schema({
-    title: { 
-        type: String, 
-        required: true 
-    },
-    description: { 
+    content: { 
         type: String, 
         required: true 
     },
     imageUrl: { 
         type: String, 
-        required: true 
+        required: false
     },
     userId: { 
         type: Schema.Types.ObjectId, 
         ref: 'User', 
         required: true 
     },
+    comments: [{ 
+        type: Schema.Types.ObjectId, 
+        ref: 'Comment' 
+    }], // Ahora referencia los comentarios por ObjectId
     createdAt: { 
         type: Date, 
         default: Date.now 

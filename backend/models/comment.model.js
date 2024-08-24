@@ -11,10 +11,10 @@ const commentSchema = new Schema({
         ref: 'User', 
         required: true 
     },
-    postId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Post', 
-        required: true 
+    postId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Post',
+        required: true
     },
     createdAt: { 
         type: Date, 
@@ -22,4 +22,4 @@ const commentSchema = new Schema({
     },
 });
 
-module.exports = mongoose.model("Comment", commentSchema);
+module.exports = mongoose.model('Comment', commentSchema);
