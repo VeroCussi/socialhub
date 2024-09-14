@@ -13,18 +13,17 @@ mongoose.connect(MONGO_ACCESS)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-// Forma automatica de implementar CORS
+// Façon automatique d'implémenter CORS
 app.use(cors()); // Configure automatiquement les en-têtes pour accepter les requêtes de toutes les origines.
 app.use(express.json()) // Pour pouvoir gérer JSON dans les requêtes
 app.use(express.urlencoded({extended: true})); // Permet de parser les données URL-encodées avec des objets imbriqués.
 
-// Manejar archivos estáticos (como imágenes)
+// Gérer les fichiers statiques (comme les images)
 app.use('/uploads', express.static('uploads'));
 
 // Connecter les routes utilisateur
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
-
-module.exports = app
+module.exports = app;

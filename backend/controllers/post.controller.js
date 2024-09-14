@@ -27,12 +27,15 @@ exports.createPost = async (req, res) => {
 // Obtenir tous les posts
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find().sort({ createdAt: -1 });
+    const posts = await Post.find()
+      .populate('userId', 'username imageUrl') // Aquí se hace populate del usuario
+      .sort({ createdAt: -1 });
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ message: "Échec de la récupération des posts", error });
   }
 };
+
 
 // Obtenir un post par ID
 exports.getPostById = async (req, res) => {

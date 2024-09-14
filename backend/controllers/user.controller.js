@@ -1,28 +1,63 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
-// Contrôleur pour enregistrer un nouvel utilisateur
+// Enregistrer un nouvel utilisateur
 exports.register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    let params = req.body;
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email ou nom utilisateur déjà utilisé' });
+    // Vérification des champs obligatoires
+    if (!params.name || !params.email || !params.username || !params.password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Des données manquent",
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
-    await newUser.save();
+    // Contrôle des utilisateurs en double
+    let users = await User.find({
+      $or: [
+        { email: params.email.toLowerCase() },
+        { username: params.username }
+      ]
+    });
 
-    res.status(201).json({ message: 'Utilisateur enregistré avec succès' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (users && users.length >= 1) {
+      return res.status(409).json({
+        status: "error",
+        message: "L'utilisateur existe déjà"
+      });
+    }
+
+    // Chiffrer le mot de passe
+    let pwd = await bcrypt.hash(params.password, 10);
+    params.password = pwd;
+
+    // Créer un objet utilisateur
+    let newUser = new User(params);
+
+    // Enregistrer l'utilisateur dans la base de données
+    let savedUser = await newUser.save();
+
+    // Retourner le résultat en cas de succès
+    return res.status(200).json({
+      status: "success",
+      message: "Utilisateur enregistré avec succès",
+      user: savedUser
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Erreur du serveur",
+      error: error.message
+    });
   }
 };
 
-// Contrôleur pour connecter un utilisateur
+// Connexion d'un utilisateur
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -43,13 +78,21 @@ exports.login = async (req, res) => {
       { expiresIn: '365d' }
     );
 
-    res.json({ token });
+    // Exclure le mot de passe avant d'envoyer les informations de l'utilisateur
+    const { password: _, ...userWithoutPassword } = user._doc;
+
+    res.json({ 
+      status: 'success', 
+      message: 'Utilisateur connecté avec succès', 
+      token,
+      user: userWithoutPassword
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
-// Contrôleur pour deconnecter un utilisateur 
+// Déconnexion d'un utilisateur
 exports.logout = async (req, res) => {
   try {
     res.json({ message: 'Déconnexion réussie' });
@@ -61,12 +104,78 @@ exports.logout = async (req, res) => {
 // Obtenir les informations de profil
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
-    res.json(user);
+    const id = req.params.id;
+
+    // Recherche du profil utilisateur par ID avec async/await
+    const userProfile = await User.findById(id).select('-password -role');
+
+    // Si l'utilisateur n'est pas trouvé, renvoyer une erreur 404
+    if (!userProfile) {
+      return res.status(404).json({
+        status: "error",
+        message: "L'utilisateur n'existe pas"
+      });
+    }
+
+    // Si tout va bien, retourner le profil de l'utilisateur
+    return res.status(200).json({
+      status: "success",
+      user: userProfile
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    // Capture des erreurs du serveur
+    return res.status(500).json({
+      status: "error",
+      message: "Erreur du serveur",
+      error: err.message
+    });
   }
 };
+
+// Liste de tous les utilisateurs de l'application
+exports.list = async (req, res) => {
+  try {
+    // Déterminer la page actuelle
+    let page = req.params.page ? parseInt(req.params.page) : 1;
+    let itemsPerPage = 10;
+
+    // Configurer les options de pagination
+    const options = {
+      page: page,
+      limit: itemsPerPage,
+      sort: { _id: 1 }
+    };
+
+    // Effectuer la pagination
+    const result = await User.paginate({}, options);
+
+    if (!result.docs || result.docs.length === 0) {
+      return res.status(404).send({
+        status: 'error',
+        message: 'Aucun utilisateur disponible'
+      });
+    }
+
+    // Retourner le résultat si des utilisateurs sont trouvés
+    return res.status(200).send({
+      status: 'success',
+      users: result.docs,
+      page: result.page,
+      itemsPerPage: result.limit,
+      total: result.totalDocs,
+      pages: result.totalPages
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: 'error',
+      message: 'Erreur du serveur',
+      error
+    });
+  }
+};
+
 
 // Créer un nouvel administrateur
 exports.createAdmin = async (req, res) => {
@@ -94,150 +203,3 @@ exports.createAdmin = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
-// const User = require('../models/user.model');
-// const bcrypt = require('bcrypt');
-// const jwt = require('jsonwebtoken');
-
-// // Contrôleur pour enregistrer un nouvel utilisateur
-// exports.register = async (req, res) => {
-//   try {
-//     const { username, email, password } = req.body;
-
-//     // Vérifier si l'email ou le nom d'utilisateur est déjà utilisé
-//     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-//     if (existingUser) {
-//       return res.status(400).json({ message: 'Email ou nom d\'utilisateur déjà utilisé' });
-//     }
-
-//     // Hasher le mot de passe avant de le sauvegarder
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Créer un nouvel utilisateur
-//     const newUser = new User({ username, email, password: hashedPassword });
-//     await newUser.save();
-
-//     // Retourner un message de succès
-//     res.status(201).json({ message: 'Utilisateur enregistré avec succès' });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
-// // Contrôleur pour connecter un utilisateur
-// exports.login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await User.findOne({ email });
-
-//     if (!user) {
-//       return res.status(400).json({ message: 'Usuario no encontrado' });
-//     }
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res.status(400).json({ message: 'Contraseña incorrecta' });
-//     }
-
-//     const token = jwt.sign(
-//       { _id: user._id, role: user.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: '365d' }
-//     );
-
-//     res.json({ token });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-
-// // exports.login = async (req, res) => {
-// //   try {
-// //     const { email, password } = req.body;
-
-// //     // Chercher l'utilisateur par email
-// //     const user = await User.findOne({ email });
-// //     if (!user) {
-// //       return res.status(400).json({ message: 'Utilisateur non trouvé' });
-// //     }
-
-// //     // Comparer le mot de passe
-// //     const isMatch = await bcrypt.compare(password, user.password);
-// //     if (!isMatch) {
-// //       return res.status(400).json({ message: 'Mot de passe incorrect' });
-// //     }
-
-// //     // Créer un token JWT
-// //     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '365d' });
-
-// //     // Retourner le token et les informations utilisateur
-// //     res.json({
-// //       token,
-// //       user: {
-// //         id: user._id,
-// //         username: user.username,
-// //         email: user.email,
-// //         role: user.role,
-// //       },
-// //     });
-// //   } catch (err) {
-// //     res.status(500).json({ error: err.message });
-// //   }
-// // };
-
-// // Contrôleur pour deconnecter un utilisateur 
-// exports.logout = async (req, res) => {
-//   try {
-    
-//   // Envoie une réponse à l'utilisateur indiquant que la déconnexion a réussi
-//   res.json({ message: 'Logout successful' });
-    
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
-// // Obtenir les informations de profil
-// exports.getProfile = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user.id).select('-password');
-//     res.json(user);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
-// // Controller para crear un admin
-// exports.createAdmin = async (req, res) => {
-//   try {
-//     const { username, email, password } = req.body;
-
-//     // Verificar si el email o el nombre de usuario ya están en uso
-//     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-//     if (existingUser) {
-//       return res.status(400).json({ message: 'Email o nombre de usuario ya está en uso' });
-//     }
-
-//     // Hashear la contraseña antes de guardarla
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Crear un nuevo administrador
-//     const newAdmin = new User({
-//       username,
-//       email,
-//       password: hashedPassword,
-//       role: 'admin', // Establecer el rol como 'admin'
-//       permissions: ['manage_posts', 'manage_users', 'manage_comments'] // Permisos adicionales si es necesario
-//     });
-
-//     // Guardar el administrador en la base de datos
-//     await newAdmin.save();
-
-//     // Responder con un mensaje de éxito
-//     res.status(201).json({ message: 'Administrador creado exitosamente' });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
