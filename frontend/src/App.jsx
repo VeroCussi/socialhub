@@ -4,7 +4,7 @@ function App() {
 
   return (
     <div className='layout'>
-      {/* cargando la configuracion de todas las rutas */}
+      {/* chargement de la configuration de toutes les routes */}
       <Routing />
 
     

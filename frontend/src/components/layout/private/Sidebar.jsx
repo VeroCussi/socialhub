@@ -12,29 +12,29 @@ export const Sidebar = () => {
   const savePost = async (e) => {
     e.preventDefault();
 
-    // Crear FormData y añadir los datos del post
+    // Créer un FormData et ajouter les données du post
     let formData = new FormData();
-    formData.append("content", form.text); // El campo 'content' es el que espera el controlador
-    formData.append("userId", auth._id); // Usar el ID del usuario autenticado
+    formData.append("content", form.text); // Le champ 'content' est celui attendu par le contrôleur
+    formData.append("userId", auth._id); // Utiliser l'ID de l'utilisateur authentifié
 
-    // Añadir la imagen si está presente
+    // Ajouter l'image si elle est présente
     const fileInput = document.querySelector('#file');
     if (fileInput.files.length > 0) {
       formData.append("image", fileInput.files[0]);
     }
 
-    // Hacer request para guardar en la base de datos
+    // Faire une requête pour enregistrer dans la base de données
     const request = await fetch(Global.url + "posts/", {
       method: "POST",
       body: formData,
       headers: {
-        'x-auth-token': localStorage.getItem('token') // Asegurarse de que se envíe el token
+        'x-auth-token': localStorage.getItem('token') // S'assurer que le token est envoyé
       },
     });
 
     const data = await request.json();
 
-    // Mostrar mensaje de éxito o error
+    // Afficher un message de succès ou d'erreur
     if (data.message === "Post créé avec succès!") {
       setStored("stored");
       const myForm = document.querySelector("#publication-form");
@@ -49,7 +49,7 @@ export const Sidebar = () => {
     <>
       <aside className="layout__aside">
         <header className="aside__header">
-          <h1 className="aside__title">Hola, {auth.name}!</h1>
+          <h1 className="aside__title">Salut, {auth.name}!</h1>
         </header>
 
         <div className="aside__container">
@@ -79,20 +79,20 @@ export const Sidebar = () => {
             <div className="profile-info__stats">
               <div className="stats__following">
                 <a href="#" className="following__link">
-                  <span className="following__title">Siguiendo</span>
+                  <span className="following__title">Following</span>
                   <span className="following__number">10</span>
                 </a>
               </div>
               <div className="stats__following">
                 <a href="#" className="following__link">
-                  <span className="following__title">Seguidores</span>
+                  <span className="following__title">Followers</span>
                   <span className="following__number">13</span>
                 </a>
               </div>
 
               <div className="stats__following">
                 <a href="#" className="following__link">
-                  <span className="following__title">Publicaciones</span>
+                  <span className="following__title">Posts</span>
                   <span className="following__number">17</span>
                 </a>
               </div>
@@ -103,7 +103,7 @@ export const Sidebar = () => {
             <form id="publication-form" className="container-form__form-post" onSubmit={savePost}>
               <div className="form-post__inputs">
                 <label htmlFor="text" className="form-post__label">
-                  ¿Qué estás pensando hoy?
+                  À quoi pensez-vous aujourd'hui ?
                 </label>
                 <textarea
                   name="text"
@@ -114,20 +114,20 @@ export const Sidebar = () => {
 
               <div className="form-post__inputs">
                 <label htmlFor="file" className="form-post__label">
-                  Sube tu foto
+                  Téléchargez votre photo
                 </label>
                 <input type="file" name="file0" id="file" className="form-post__image" />
               </div>
 
               <input
                 type="submit"
-                value="Enviar"
+                value="Envoyer"
                 className="form-post__btn-submit"
               />
             </form>
 
-            {stored === "stored" && <p className="success-message">Post guardado con éxito.</p>}
-            {stored === "error" && <p className="error-message">Hubo un error al guardar el post.</p>}
+            {stored === "stored" && <p className="success-message">Post enregistré avec succès.</p>}
+            {stored === "error" && <p className="error-message">Une erreur est survenue lors de l'enregistrement du post.</p>}
           </div>
         </div>
       </aside>

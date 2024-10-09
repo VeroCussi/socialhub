@@ -27,13 +27,13 @@ export const Comment = ({ postId, comments: initialComments, refreshComments }) 
   
       if (request.ok) {
         const newCommentData = await request.json();
-        setNewComment(""); // Limpiar el campo de comentario
-        setComments(prevComments => [...prevComments, newCommentData]); // Actualizar los comentarios localmente
-        refreshComments(); // Llamar al prop refreshComments para actualizar los comentarios en el componente padre
+        setNewComment(""); // Nettoyer le champ de commentaire
+        setComments(prevComments => [...prevComments, newCommentData]); // Mettre à jour les commentaires localement
+        refreshComments(); // Appeler la prop refreshComments pour mettre à jour les commentaires dans le composant parent
       }
   
     } catch (error) {
-      console.error("Error al enviar el comentario:", error);
+      console.error("Erreur lors de l'envoi du commentaire:", error);
     }
   };
   

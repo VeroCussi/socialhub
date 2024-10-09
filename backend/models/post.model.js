@@ -18,7 +18,7 @@ const postSchema = new Schema({
     comments: [{ 
         type: Schema.Types.ObjectId, 
         ref: 'Comment' 
-    }], // Ahora referencia los comentarios por ObjectId
+    }],
     createdAt: { 
         type: Date, 
         default: Date.now 

@@ -8,14 +8,13 @@ export const Register = () => {
   const [saved, setSaved] = useState("not_sended");
 
   const saveUser = async (e) => {
-    // Prevenir la actualización de pantalla
+    // Empêcher la mise à jour de l'écran
     e.preventDefault();
 
-    // Recoger datos del formulario
+    // Récupérer les données du formulaire
     let newUser = form;
-    console.log("Datos del usuario a enviar:", newUser);
 
-    // Guardar usuario en el backend
+    // Enregistrer l'utilisateur dans le backend
     const request = await fetch(Global.url + "user/register", {
       method: "POST",
       body: JSON.stringify(newUser),
@@ -25,9 +24,8 @@ export const Register = () => {
     });
 
     const data = await request.json();
-    console.log("Respuesta del backend:", data);
 
-    // Verificar si el registro fue exitoso
+    // Vérifier si l'inscription a réussi
     if (request.status === 200 && data.status.toLowerCase() === "success") {
       setSaved("saved");
     } else {
@@ -42,13 +40,13 @@ export const Register = () => {
       </header>
 
       <div className="content__posts">
-        {/* Mensajes de éxito o error en el registro */}
+        {/* Messages de succès ou d'erreur lors de l'inscription */}
         {saved === "saved" && (
-          <strong className="alert alert-success">User registered successfully!</strong>
+          <strong className="alert alert-success">Utilisateur inscrit avec succès !</strong>
         )}
 
         {saved === "error" && (
-          <strong className="alert alert-danger">User not registered!</strong>
+          <strong className="alert alert-danger">L'utilisateur n'a pas pu être inscrit !</strong>
         )}
 
         <form className="register-form" onSubmit={saveUser}>

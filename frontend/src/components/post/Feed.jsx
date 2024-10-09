@@ -16,13 +16,13 @@ export const Feed = () => {
       });
 
       if (request.status === 403) {
-        throw new Error("No tienes permisos para acceder a los posts");
+        throw new Error("Vous n'avez pas la permission d'accéder aux publications");
       }
 
       const data = await request.json();
       setPosts(data);
     } catch (error) {
-      console.error("Error al obtener los posts:", error);
+      console.error("Erreur lors de la récupération des publications:", error);
     }
   };
 
@@ -48,7 +48,7 @@ export const Feed = () => {
         )
       );
     } catch (error) {
-      console.error("Error al actualizar los comentarios:", error);
+      console.error("Erreur lors de la mise à jour des commentaires :", error);
     }
   };
   
@@ -57,7 +57,7 @@ export const Feed = () => {
     <>
       <header className="content__header">
         <h1 className="content__title">Timeline</h1>
-        <button className="content__button">Mostrar nuevas</button>
+        <button className="content__button">Afficher les nouvelles</button>
       </header>
 
       <div className="content__posts">
@@ -98,11 +98,11 @@ export const Feed = () => {
                     <i className="fa fa-heart"></i> 26
                   </div>
                   <div className="interaction__button">
-                    <i className="fa fa-comment"></i> {post.comments.length} comentarios
+                    <i className="fa fa-comment"></i> {post.comments.length} commentaires
                   </div>
                 </div>
                 <div className="interaction__button">
-                  <i className="fa fa-share"></i> Compartir
+                  <i className="fa fa-share"></i> Partager
                 </div>
               </div>
 
@@ -110,12 +110,12 @@ export const Feed = () => {
             </div>
           ))
         ) : (
-          <p>No hay publicaciones disponibles.</p>
+          <p>Aucune publication disponible.</p>
         )}
       </div>
 
       <div className="content__container-btn">
-        <button className="content__btn-more-post">Ver más publicaciones</button>
+        <button className="content__btn-more-post">Voir plus de publications</button>
       </div>
     </>
   );

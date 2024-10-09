@@ -3,40 +3,23 @@ const jwt = require('jsonwebtoken');
 module.exports = (req, res, next) => {
   try {
     const token = req.header('x-auth-token');
-    if (!token) return res.status(401).json({ message: 'Acceso denegado, token ausente' });
+    if (!token) return res.status(401).json({ message: 'Accès refusé, token absent' });
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Asegurarse de que verified tiene las propiedades necesarias
+    // Verifier les propriétés nécessaires
     if (!verified || !verified._id) {
-      return res.status(400).json({ message: 'Token inválido' });
+      return res.status(400).json({ message: 'Token invalide' });
     }
 
     req.user = {
       _id: verified._id,
-      role: verified.role // Asegúrate de que `role` esté en el token, si lo usas para verificar permisos
+      role: verified.role // Verifier que `role` est dans le token, pour vérifier les autorisations
     };
 
     next();
   } catch (err) {
-    res.status(400).json({ message: 'Token inválido' });
+    res.status(400).json({ message: 'Token invalide' });
   }
 };
 
-
-
-// const jwt = require('jsonwebtoken');
-
-// module.exports = (req, res, next) => {
-//   try {
-//     const token = req.header('x-auth-token');
-//     if (!token) return res.status(401).json({ message: 'Accès refusé, token manquant' });
-
-//     const verified = jwt.verify(token, process.env.JWT_SECRET);
-//     req.user = verified;
-//     req.admin = verified;
-//     next();
-//   } catch (err) {
-//     res.status(400).json({ message: 'Token invalide' });
-//   }
-// };

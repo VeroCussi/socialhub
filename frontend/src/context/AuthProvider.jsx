@@ -1,14 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Crear el contexto de autenticación
+// Créer le contexte d'authentification
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({ token: null, user: null });
   const navigate = useNavigate();
 
-  // Cargar el token desde localStorage cuando la app se inicia
+  // Charger le token depuis localStorage lorsque l'application démarre
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -17,20 +17,20 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Manejar el login y guardar el token y user
+  // Gérer la connexion et enregistrer le token et l'utilisateur
   const login = (token, user) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', user);
     setAuth({ token, user });
-    navigate('/profile'); // Redirigir al perfil después de hacer login
+    navigate('/profile'); // Rediriger vers le profil après la connexion
   };
 
-  // Manejar el logout y eliminar los datos de autenticación
+  // Gérer la déconnexion et supprimer les données d'authentification
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setAuth({ token: null, user: null });
-    navigate('/login'); // Redirigir a la página de login después de hacer logout
+    navigate('/login'); // Rediriger vers la page de connexion après la déconnexion
   };
 
   return (

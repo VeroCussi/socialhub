@@ -12,4 +12,4 @@ EXPOSE 3000
 
 CMD ["node", "server"]
 
-#falta hacer la imagen (docker build -t SocialHub) y el dockerhub y el .dockerignore
+#falta hacer la imagen (docker build -t SocialHub) y el dockerhub

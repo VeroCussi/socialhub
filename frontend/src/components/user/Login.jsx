@@ -8,17 +8,17 @@ import useAuth from "../../hooks/useAuth";
 export const Login = () => {
 
     const { form, changed } = useForm({});
-    const [saved, setSaved] = useState(""); // Inicializar el estado con una cadena vacía
+    const [saved, setSaved] = useState(""); // Initialiser l'état avec une chaîne vide
 
     const {setAuth} = useAuth();
 
     const loginUser = async(e) => {
         e.preventDefault();
         
-        //datos del formulario
+        //données du formulaire
         let userToLogin = form;
 
-        //Petición al backend
+        //Requête au backend
         const request = await fetch(Global.url + "user/login", {
             method: "POST",
             body: JSON.stringify(userToLogin),
@@ -29,7 +29,7 @@ export const Login = () => {
 
         const data = await request.json();
     
-        //Persistir los datos en el navegador
+        //Conserver les données dans le navigateur
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -52,10 +52,10 @@ export const Login = () => {
             <div className="content__posts">
                 
                 {saved === "login" && 
-                 <strong className="alert alert-success">User logged successfully!</strong>}
+                 <strong className="alert alert-success">Utilisateur connecté avec succès !</strong>}
 
                 {saved === "error" &&  
-                <strong className="alert alert-danger">User not logged!</strong>}
+                <strong className="alert alert-danger">Échec de la connexion de l'utilisateur !</strong>}
 
                 <form className="form-login" onSubmit={loginUser}>
                     <div className="form-group">

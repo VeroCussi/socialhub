@@ -13,7 +13,7 @@ export const People = () => {
 
   const getUsers = async(nextPage = 1) => {
 
-    // Peticion para obtener los usuarios
+    // Requête pour obtenir les utilisateurs
     const request = await fetch (Global.url + 'user/list/' + nextPage, {
       method: 'GET',
       headers: {
@@ -24,7 +24,7 @@ export const People = () => {
 
     const data = await request.json();
 
-    // Crear un estado para poder listarlos
+    // Créer un état pour pouvoir les lister
     if(data.users && data.status === 'success') {
 
       let newUsers = data.users;
@@ -59,9 +59,9 @@ export const People = () => {
           <div className="post__container">
             <div className="post__image-user">
               <a href="#" className="post__image-link">
-              {user.image !="image.jpg" && <img src={ Global.url + "user/avatar" + user.image } className="post__user-image" alt="Foto de perfil"
+              {user.image !="image.jpg" && <img src={ Global.url + "user/avatar" + user.image } className="post__user-image" alt="Photo de profil"
                 />}
-              {user.image =="image.jpg" && <img src={ avatar } className="post__user-image" alt="Foto de perfil"
+              {user.image =="image.jpg" && <img src={ avatar } className="post__user-image" alt="Photo de profil"
                 />}
               </a>
             </div>
@@ -77,13 +77,13 @@ export const People = () => {
                 </a>
               </div>
 
-              <h4 className="post__content">Hola, buenos dias!</h4>
+              <h4 className="post__content">Bonjour, bonne journée !</h4>
             </div>
           </div>
 
           <div className="post__buttons">
             <a href="#" className="post__button">
-              Follow
+              Suivre
             </a>
           </div>
         </article>
@@ -95,7 +95,7 @@ export const People = () => {
       
         <div className="content__container-btn">
         <button className="content__btn-more-post" onClick={nextPage}>
-          See more people
+          Voir plus de personnes
         </button>
       </div>
     

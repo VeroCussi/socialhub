@@ -9,18 +9,17 @@ export const PrivateLayout = () => {
     const {auth, loading} = useAuth();
 
     if(loading){
-        return <h1>Cargando...</h1>
+        return <h1>Chargement...</h1>
     } else {
         return(
             <>
             {/* LAYOUT */}
     
-             {/* cabecera y navegación */}
+             {/* en-tête et navigation */}
             <Header />
-            {/* Contenido principal */}
+            {/* Contenu principal */}
             <section className='layout__content'>
                 {
-                     //<Outlet /> 
                     auth._id ?
                     <Outlet />
                     :

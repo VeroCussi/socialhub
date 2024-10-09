@@ -180,7 +180,7 @@ exports.list = async (req, res) => {
 // Créer un nouvel administrateur
 exports.createAdmin = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
@@ -190,6 +190,7 @@ exports.createAdmin = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newAdmin = new User({
+      name,
       username,
       email,
       password: hashedPassword,

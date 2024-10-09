@@ -15,7 +15,7 @@ export const Nav = () =>{
                     <li className="menu-list__item">
                         <NavLink to="/social" className="menu-list__link">
                             <i className="fa-solid fa-house"></i>
-                            <span className="menu-list__title">Home</span>
+                            <span className="menu-list__title">Accueil</span>
                         </NavLink>
                     </li>
 
@@ -38,10 +38,9 @@ export const Nav = () =>{
                 <ul className="container-lists__list-end">
                     <li className="list-end__item">
                         <NavLink to="/social/profile" className="list-end__link-image">
-                            {/* <img src={ avatar } className="list-end__img" alt="Imagen de perfil"/> */}
-                            {auth.image !="image.jpg" && <img src={ Global.url + "user/avatar" + auth.image } className="list-end__img" alt="Foto de perfil"
+                            {auth.image !="image.jpg" && <img src={ Global.url + "user/avatar" + auth.image } className="list-end__img" alt="Photo de profil"
                             />}
-                            {auth.image =="image.jpg" && <img src={ avatar } className="list-end__img" alt="Foto de perfil"
+                            {auth.image =="image.jpg" && <img src={ avatar } className="list-end__img" alt="Photo de profil"
                             />}
                         </NavLink>
                     </li>
