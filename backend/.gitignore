@@ -1,2 +1,8 @@
 /node_modules
 .env
+/uploads
+/__tests__
+/unit
+/z screenshots
+.ERD_Social_Media_Application
+.message.txt

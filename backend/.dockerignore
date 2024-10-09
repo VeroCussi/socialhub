@@ -1,0 +1,5 @@
+nodes_modules
+.git
+uploads/
+.env
+__test__/
