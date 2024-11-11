@@ -1,122 +1,92 @@
-
 const request = require('supertest');
 const app = require('../../app');
+const mongoose = require('mongoose');
 const Post = require('../../models/post.model');
+const User = require('../../models/user.model');
+const jwt = require('jsonwebtoken');
 
-jest.mock('../../models/post.model');
+// URI MongoDB pour la base de données
+const mongoURI = 'mongodb+srv://verocussi:Qwerty@atlascluster.nutwp.mongodb.net/SocialHub?retryWrites=true&w=majority&appName=AtlasCluster';
 
-describe('POST /posts', () => {
-  it('debería crear un nuevo post exitosamente', async () => {
-    // Mock del usuario autenticado
-    const mockUser = { _id: 'user123' };
-
-    // Mock del archivo
-    const mockFile = { 
-      filename: 'test-image.jpg',
-      path: '/path/to/test-image.jpg'
-    };
-
-    // Mock de la función save del modelo Post
-    Post.prototype.save = jest.fn().mockResolvedValue({
-      _id: 'post123',
-      content: 'Contenido de prueba',
-      imageUrl: 'http://localhost:3000/uploads/test-image.jpg',
-      userId: mockUser._id
-    });
-
-    const response = await request(app)
-      .post('/posts')
-      .set('Authorization', 'Bearer fakeToken')
-      .field('content', 'Contenido de prueba')
-      .attach('file', mockFile.path);
-
-    expect(response.statusCode).toBe(201);
-    expect(response.body.message).toBe('Post créé avec succès!');
-    expect(Post.prototype.save).toHaveBeenCalled();
-  });
-
-  it('debería manejar errores al crear un post', async () => {
-    Post.prototype.save = jest.fn().mockRejectedValue(new Error('Error de base de datos'));
-
-    const response = await request(app)
-      .post('/posts')
-      .set('Authorization', 'Bearer fakeToken')
-      .field('content', 'Contenido de prueba');
-
-    expect(response.statusCode).toBe(500);
-    expect(response.body.message).toBe("Échec de la création du post");
-  });
+beforeAll(async () => {
+  // Connexion à la base de données avant l'exécution des tests
+  await mongoose.connect(mongoURI);
 });
 
-// const { createPost, getAllPost, getPostById, updatePost, deletePost} = require('../../controllers/post.controller');
-// const Post = require('../../models/post.model');
-// //const req = require('supertest');
+afterAll(async () => {
+  // Déconnexion de la base de données après l'exécution des tests
+  await mongoose.disconnect();
+});
 
-// jest.mock('../../models/post.model');
+describe('Test du contrôleur getAllPosts', () => {
 
-// describe('Post Controller - Create', () => {
-//     it('debería crear una publicación nueva', async () =>{
-//         const req = {
-//             body: { content: 'contenido de prueba: test unitario'}
-//         };
-//         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+  it('Devrait retourner tous les posts avec succès', async () => {
+    // Créer un utilisateur de test
+    const user = await User.create({
+      name: 'Test User',
+      email: 'test1234@example.com',
+      password: 'password123',
+      username: 'testuser1234',
+      image: 'http://example.com/userimage.jpg'
+    });
 
-//         Post.save = jest.fn().mockResolvedValue(true);
+    // Générer un token JWT
+    const token = jwt.sign(
+      { _id: user._id, role: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-//         await createPost(req, res);
+    // Créer des posts pour le test
+    await Post.create([
+      {
+        content: 'Ceci est un post 1',
+        userId: user._id,
+        createdAt: new Date(),
+      },
+      {
+        content: 'Ceci est un post 2',
+        userId: user._id,
+        createdAt: new Date(),
+      }
+    ]);
 
-//         expect(Post.save).toHaveBeenCalled();
-//         expect(res.status).toHaveBeenCalledWith(201);
-//         expect(res.json).toHaveBeenCalledWith({ message: 'Post creado con exito' });
-//     });
-// });
+    // Requête pour obtenir tous les posts
+    const response = await request(app)
+      .get('/api/posts/')
+      .set('x-auth-token', token);
 
+    // Vérifier le statut et le contenu de la réponse
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body[0]).toHaveProperty('content', 'Ceci est un post 1');
+    expect(response.body[0].userId).toHaveProperty('username', 'testuser1234'); 
 
+    // Vérifier que `imageUrl` est soit une chaîne valide, soit absent
+    if (response.body[0].userId.image) {
+      expect(response.body[0].userId.image).toBe('http://example.com/userimage.jpg');
+    }
+  });
 
-// const request = require('supertest');
-// const app = require('../../app');
-// const Post = require('../../models/post.model');
-// const User = require('../../models/user.model');
+  it('Devrait retourner une erreur si le serveur échoue', async () => {
+    // Fermer la connexion à la base de données pour simuler une erreur du serveur
+    await mongoose.connection.close();
 
-// // Simular el modelo Post
-// jest.mock('../../models/post.model');
+    const token = jwt.sign(
+      { _id: 'fakeUserId', role: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-// describe('POST /posts', () => {
-//   it('should create a new post successfully', async () => {
-//     // Mock de req.user y req.file
-//     const mockUser = { _id: '12345' };
-//     const mockFile = { filename: 'image.png' };
+    const response = await request(app)
+      .get('/api/posts/')
+      .set('x-auth-token', token);
 
-//     // Mock de Post.save()
-//     Post.prototype.save = jest.fn().mockResolvedValue({ _id: 'post123', content: 'Test content', imageUrl: 'http://localhost/uploads/image.png', userId: mockUser._id });
+    expect(response.status).toBe(500);
+    expect(response.body.message).toBe("Échec de la récupération des posts");
 
-//     const response = await request(app)
-//     .post('/posts')
-//     .set('Authorization', 'Bearer fakeToken')  // Si usas autenticación
-//     .field('content', 'Test content')  // Utiliza .field() para el campo de texto
-//     .attach('file', mockFile.filename);  // Utiliza .attach() para el archivo
+    // Réouvrir la connexion pour les autres tests
+    await mongoose.connect(mongoURI);
+  });
 
-
-//     // Comprobar la respuesta
-//     expect(response.statusCode).toBe(201);
-//     expect(response.body.message).toBe('Post créé avec succès!');
-//     expect(Post.prototype.save).toHaveBeenCalled();
-//   });
-
-//   it('should handle errors when creating a post', async () => {
-//     // Forzar un error en la base de datos
-//     Post.prototype.save = jest.fn().mockRejectedValue(new Error('Database error'));
-
-//     const response = await request(app)
-//       .post('/posts')
-//       .set('Authorization', 'Bearer fakeToken')  // autenticación
-//       .send({ content: 'Test content' });
-
-//     // Comprobar la respuesta
-//     expect(response.statusCode).toBe(500);
-//     expect(response.body.message).toBe("Échec de la création du post");
-//   });
-// });
-
-
-
+});

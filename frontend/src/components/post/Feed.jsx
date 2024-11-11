@@ -73,7 +73,11 @@ export const Feed = () => {
                   />
                 </div>
                 <div className="post__user-info">
-                  <span className="user-info__name">{post.userId.username}</span>
+                  <span className="user-info__name">
+                    {post.userId && post.userId.username
+                      ? post.userId.username
+                      : "Utilisateur inconnu"}
+                  </span>
                   <span className="user-info__create-date">
                     {new Date(post.createdAt).toLocaleString()}
                   </span>
@@ -98,7 +102,8 @@ export const Feed = () => {
                     <i className="fa fa-heart"></i> 26
                   </div>
                   <div className="interaction__button">
-                    <i className="fa fa-comment"></i> {post.comments.length} commentaires
+                    <i className="fa fa-comment"></i> {post.comments.length}{" "}
+                    commentaires
                   </div>
                 </div>
                 <div className="interaction__button">
@@ -106,7 +111,11 @@ export const Feed = () => {
                 </div>
               </div>
 
-              <Comment postId={post._id} comments={post.comments} refreshComments={refreshComments} />
+              <Comment
+                postId={post._id}
+                comments={post.comments}
+                refreshComments={refreshComments}
+              />
             </div>
           ))
         ) : (
@@ -115,7 +124,9 @@ export const Feed = () => {
       </div>
 
       <div className="content__container-btn">
-        <button className="content__btn-more-post">Voir plus de publications</button>
+        <button className="content__btn-more-post">
+          Voir plus de publications
+        </button>
       </div>
     </>
   );
