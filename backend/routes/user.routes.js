@@ -17,11 +17,10 @@ router.post('/logout', UserController.logout);
 // Route pour obtenir les informations du profil (protégée)
 router.get('/profile/:id', authMiddleware, UserController.getProfile);
 
-// Route pour obtenir les todos los profil con páginas (protégée)
+// Route pour obtenir tous les profils (protégée)
 router.get('/list/:page?', authMiddleware, UserController.list);
 
-// Route pour créer un nouvel administrateur (ahora mismo es una ruta que no está protegida, 
-// ver que hacer, le pongo el middleware del admin para crear un admin???)
+// Route pour créer un nouvel administrateur
 router.post('/create-admin', UserController.createAdmin);
 
 

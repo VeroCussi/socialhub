@@ -27,33 +27,16 @@ exports.createComment = async (req, res) => {
 };
 
 
-// Obtenir tous les commentaires
-exports.getAllComments = async (req, res) => {
+//Obtenir tous les commentaires d'un post
+exports.getCommentsByPostId = async (req, res) => {
     try {
-        // Récupérer tous les commentaires et les trier du plus récent au plus ancien
-        const comments = await Comment.find().sort({ createdAt: -1 });
-        // Retourner la liste des commentaires
+        // Filtrer les commentaires par postId
+        const comments = await Comment.find({ postId: req.params.id }).sort({ createdAt: -1 });
+        // Retourner les commentaires du post spécifié
         res.status(200).json(comments);
     } catch (error) {
         // En cas d'erreur, retourner un message d'erreur
         res.status(500).json({ message: "Échec de la récupération des commentaires", error });
-    }
-};
-
-// Obtenir un commentaire par ID
-exports.getCommentById = async (req, res) => {
-    try {
-        // Récupérer le commentaire par son ID
-        const comment = await Comment.findById(req.params.id);
-        if (!comment) {
-            // Si le commentaire n'existe pas, retourner un message d'erreur
-            return res.status(404).json({ message: "Commentaire non trouvé" });
-        }
-        // Retourner le commentaire trouvé
-        res.status(200).json(comment);
-    } catch (error) {
-        // En cas d'erreur, retourner un message d'erreur
-        res.status(500).json({ message: "Échec de la récupération du commentaire", error });
     }
 };
 
@@ -84,7 +67,7 @@ exports.updateComment = async (req, res) => {
 
         res.status(200).json(updatedComment);
     } catch (error) {
-        console.error("Erreur lors de la mise à jour du commentaire :", error); // Journal de l'erreur détaillée
+        console.error("Erreur lors de la mise à jour du commentaire :", error);
         res.status(500).json({ message: "Erreur lors de la mise à jour du commentaire", error: error.message });
     }
 };

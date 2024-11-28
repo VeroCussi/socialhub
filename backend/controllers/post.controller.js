@@ -1,5 +1,4 @@
 const Post = require("../models/post.model");
-const User = require("../models/user.model");
 
 // Créer un nouveau post
 exports.createPost = async (req, res) => {
@@ -30,7 +29,7 @@ exports.createPost = async (req, res) => {
 exports.getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate("userId", "username imageUrl") // Aquí se hace populate del usuario
+      .populate("userId", "username imageUrl")
       .sort({ createdAt: -1 });
     res.status(200).json(posts);
   } catch (error) {
@@ -91,7 +90,7 @@ exports.deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
-    const userRole = req.user.role;  // MIRAR QUE TENGA SENTIDO METER ESTO ACA
+    const userRole = req.user.role;
 
     const post = await Post.findById(postId);
     if (!post) {
