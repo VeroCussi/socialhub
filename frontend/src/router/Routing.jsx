@@ -35,7 +35,7 @@ export const Routing = () => {
             element={
               <>
                 <p>
-                  <h1>Error 404</h1>
+                  Error 404
                   <Link to="/">Return to the Home</Link>
                 </p>
               </>

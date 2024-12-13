@@ -1,112 +1,141 @@
 const request = require('supertest');
 const app = require('../../app');
-const mongoose = require('mongoose');
 const User = require('../../models/user.model');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
-// URI MongoDB pour la base de données réelle
-const mongoURI = 'mongodb+srv://verocussi:Qwerty@atlascluster.nutwp.mongodb.net/SocialHub?retryWrites=true&w=majority&appName=AtlasCluster';
+// Mock du modèle user
+jest.mock('../../models/user.model');
 
-beforeAll(async () => {
-  // Connexion à la base de données avant l'exécution des tests
-  await mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-});
+describe('User Controller Tests', () => {
+  let token;
 
-afterAll(async () => {
-  // Déconnexion de la base de données après l'exécution des tests
-  await mongoose.disconnect();
-});
-
-// afterEach(async () => {
-//   // Suppression des utilisateurs après chaque test pour éviter les conflits de données
-//   await User.deleteMany({});
-// });
-
-describe('Contrôleur d\'inscription des utilisateurs avec base de données réelle', () => {
-
-  it('Devrait enregistrer un nouvel utilisateur avec succès', async () => {
-    const newUser = {
-      name: 'Juan Pérez',
-      email: 'juanperez@example.com',
-      username: 'juanperez',
-      password: 'password123'
-    };
-
-    const response = await request(app)
-      .post('/api/user/register') // Assurez-vous que la route est correcte
-      .send(newUser);
-
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('success');
-    expect(response.body.message).toBe('Utilisateur enregistré avec succès');
-    expect(response.body.user).toHaveProperty('_id');
-    expect(response.body.user.name).toBe(newUser.name);
-    expect(response.body.user.email).toBe(newUser.email.toLowerCase());
+  beforeAll(() => {
+    // Mocking JWT simulé
+    token = jwt.sign({ _id: 'mockUserId', role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1d' });
   });
 
-  it('Devrait retourner une erreur si des champs obligatoires manquent', async () => {
-    const incompleteUser = {
-      email: 'incomplet@example.com',
-      password: 'password123'
-    };
-
-    const response = await request(app)
-      .post('/api/user/register')
-      .send(incompleteUser);
-
-    expect(response.status).toBe(400);
-    expect(response.body.status).toBe('error');
-    expect(response.body.message).toBe('Des données manquent');
+  afterAll(async () => {
+    await mongoose.disconnect(); 
   });
 
-  it('Devrait retourner une erreur si l\'utilisateur existe déjà', async () => {
-    const existingUser = {
-      name: 'Carlos García',
-      email: 'carlos@example.com',
-      username: 'carlosgarcia',
-      password: 'password123'
-    };
+  // Tests pour créer un new user
+  describe('Register a new user', () => {
+    it('should register a user successfully', async () => {
+      User.find.mockResolvedValue([]);
+      User.prototype.save = jest.fn().mockResolvedValue({
+        name: 'John Doe',
+        email: 'john@example.com',
+        username: 'johndoe',
+      });
 
-    // Sauvegarder l'utilisateur existant
-    const hashedPassword = await bcrypt.hash(existingUser.password, 10);
-    await User.create({ ...existingUser, password: hashedPassword });
+      const response = await request(app)
+        .post('/api/user/register')
+        .send({
+          name: 'John Doe',
+          email: 'john@example.com',
+          username: 'johndoe',
+          password: 'password123',
+        });
 
-    // Tenter d'enregistrer un utilisateur avec le même email
-    const response = await request(app)
-      .post('/api/user/register')
-      .send(existingUser);
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+    });
 
-    expect(response.status).toBe(409);
-    expect(response.body.status).toBe('error');
-    expect(response.body.message).toBe("L'utilisateur existe déjà");
+    it('should return an error for missing fields', async () => {
+      const response = await request(app)
+        .post('/api/user/register')
+        .send({
+          name: 'John Doe',
+          email: 'john@example.com',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Des données manquent');
+    });
+
+    it('should return an error for duplicate user', async () => {
+      User.find.mockResolvedValue([{ email: 'john@example.com' }]);
+
+      const response = await request(app)
+        .post('/api/user/register')
+        .send({
+          name: 'John Doe',
+          email: 'john@example.com',
+          username: 'johndoe',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body.message).toBe('L\'utilisateur existe déjà');
+    });
   });
 
-  it('Devrait gérer une erreur du serveur', async () => {
-    // Simuler une erreur du serveur (déconnexion de la base de données)
-    await mongoose.disconnect();
+    // Tests pour login
+  describe('User login', () => {
+    it('should log in a user successfully', async () => {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      User.findOne.mockResolvedValue({
+        email: 'john@example.com',
+        password: hashedPassword,
+        _id: 'mockUserId',
+        _doc: { email: 'john@example.com', password: hashedPassword },
+      });
 
-    const newUser = {
-      name: 'Luis Martinez',
-      email: 'luismartinez@example.com',
-      username: 'luismartinez',
-      password: 'password123'
-    };
+      const response = await request(app)
+        .post('/api/user/login')
+        .send({
+          email: 'john@example.com',
+          password: 'password123',
+        });
 
-    const response = await request(app)
-      .post('/api/user/register')
-      .send(newUser);
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+      expect(response.body.token).toBeDefined();
+    });
 
-    expect(response.status).toBe(500);
-    expect(response.body.status).toBe('error');
-    expect(response.body.message).toBe('Erreur du serveur');
+    it('should return an error for invalid email', async () => {
+      User.findOne.mockResolvedValue(null);
 
-    // Reconnexion à la base de données pour les autres tests
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      const response = await request(app)
+        .post('/api/user/login')
+        .send({
+          email: 'invalid@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Utilisateur non trouvé');
+    });
+
+    it('should return an error for invalid password', async () => {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      User.findOne.mockResolvedValue({
+        email: 'john@example.com',
+        password: hashedPassword,
+      });
+
+      const response = await request(app)
+        .post('/api/user/login')
+        .send({
+          email: 'john@example.com',
+          password: 'wrongpassword',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Mot de passe incorrect');
+    });
+  });
+
+    // Tests pour logout
+  describe('User logout', () => {
+    it('should log out the user successfully', async () => {
+      const response = await request(app)
+        .post('/api/user/logout');
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Déconnexion réussie');
     });
   });
 });

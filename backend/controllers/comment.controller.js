@@ -31,7 +31,9 @@ exports.createComment = async (req, res) => {
 exports.getCommentsByPostId = async (req, res) => {
     try {
         // Filtrer les commentaires par postId
-        const comments = await Comment.find({ postId: req.params.id }).sort({ createdAt: -1 });
+        const comments = await Comment.find({ postId: req.params.id })
+            .sort({ createdAt: -1 })
+            .populate('userId', 'username userImage'); //añadido //revisar los test
         // Retourner les commentaires du post spécifié
         res.status(200).json(comments);
     } catch (error) {

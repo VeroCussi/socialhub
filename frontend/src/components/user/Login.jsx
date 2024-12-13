@@ -23,7 +23,8 @@ export const Login = () => {
             method: "POST",
             body: JSON.stringify(userToLogin),
             headers:{
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "x-auth-token": localStorage.getItem("token"),
             }
         });
 

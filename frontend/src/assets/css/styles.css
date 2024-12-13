@@ -1,4 +1,4 @@
-/*ESTILOS GENERALES*/
+/* ESTILOS GENERALES */
 :root {
     --color-general-text: #333;
     --color-backgroud-navbar: #3785e5;
@@ -232,6 +232,13 @@ a {
     font-weight: bold;
     color: #333;
     font-size: 16px;
+}
+
+.post__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
 }
 
 .user-info__create-date {
