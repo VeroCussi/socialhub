@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import avatar from '../../../assets/img/user.png';
 import useAuth from "../../../hooks/useAuth";
 import { Global } from "../../../helpers/Global";
@@ -8,6 +8,35 @@ export const Sidebar = () => {
   const { auth } = useAuth();
   const { form, changed } = useForm({});
   const [stored, setStored] = useState("not_stored");
+  const [userStats, setUserStats] = useState({
+    following: 0,
+    followers: 0,
+    posts: 0
+  });
+
+  useEffect(() => {
+    if (auth && auth._id) {
+      fetchUserStats();
+    }
+  }, [auth]);
+
+  const fetchUserStats = async () => {
+    try {
+      const response = await fetch(Global.url + `user/stats/${auth._id}`, {
+        method: 'GET',
+        headers: {
+          'x-auth-token': localStorage.getItem('token')
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error al obtener estadísticas:', error);
+    }
+  };
 
   const savePost = async (e) => {
     e.preventDefault();
@@ -39,10 +68,11 @@ export const Sidebar = () => {
       setStored("stored");
       const myForm = document.querySelector("#publication-form");
       myForm.reset();
+      // Actualizar estadísticas después de crear un post
+      fetchUserStats();
     } else {
       setStored("error");
     }
-    
   }
 
   return (
@@ -80,20 +110,20 @@ export const Sidebar = () => {
               <div className="stats__following">
                 <a href="#" className="following__link">
                   <span className="following__title">Following</span>
-                  <span className="following__number">10</span>
+                  <span className="following__number">{userStats.following}</span>
                 </a>
               </div>
               <div className="stats__following">
                 <a href="#" className="following__link">
                   <span className="following__title">Followers</span>
-                  <span className="following__number">13</span>
+                  <span className="following__number">{userStats.followers}</span>
                 </a>
               </div>
 
               <div className="stats__following">
                 <a href="#" className="following__link">
                   <span className="following__title">Posts</span>
-                  <span className="following__number">17</span>
+                  <span className="following__number">{userStats.posts}</span>
                 </a>
               </div>
             </div>

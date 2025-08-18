@@ -7,6 +7,7 @@ require("dotenv").config();
 const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
+const reactionRoutes = require('./routes/reaction.routes');
 
 // Connexion à MongoDB
 const MONGO_ACCESS = process.env.MONGOLAB_URI;
@@ -25,5 +26,6 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/user', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/reactions', reactionRoutes);
 
 module.exports = app;

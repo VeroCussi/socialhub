@@ -50,7 +50,15 @@ const userSchema = new Schema({
   image: {
     type: String,
     default: "image.jpg",
-  }
+  },
+  following: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  followers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true, // Champs createdAt et updatedAt automatiques
 });

@@ -1,42 +1,95 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Global } from '../helpers/Global';
 
-// Créer le contexte d'authentification
+// Crear el contexto de autenticación
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({ token: null, user: null });
-  const [loading, setLoading] = useState(true); // Indicateur de chargement initial
+  const [loading, setLoading] = useState(true); // Indicador de carga inicial
   const navigate = useNavigate();
 
-  // Charger le token depuis localStorage lorsque l'application démarre
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user')); // Parse JSON si nécessaire
-    if (token && user) {
-      setAuth({ token, user });
+  // Función para validar el token
+  const validateToken = async (token) => {
+    try {
+      const response = await fetch(Global.url + 'user/me', {
+        method: 'GET',
+        headers: {
+          'x-auth-token': token,
+        },
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        return { valid: true, user: userData.user };
+      } else {
+        return { valid: false, user: null };
+      }
+    } catch (error) {
+      console.error('Error validando token:', error);
+      return { valid: false, user: null };
     }
-    setLoading(false); // Charger terminé
+  };
+
+  // Cargar el token desde localStorage cuando la aplicación inicia
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      if (token && user) {
+        // Validar el token con el backend
+        const validation = await validateToken(token);
+        
+        if (validation.valid) {
+          setAuth({ token, user: validation.user });
+        } else {
+          // Token inválido, limpiar localStorage
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setAuth({ token: null, user: null });
+        }
+      } else {
+        setAuth({ token: null, user: null });
+      }
+      
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (token, user) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setAuth({ token, user });
-    navigate("/feed");
+    navigate("/social/feed");
   };
-  
 
-  // Gérer la déconnexion et supprimer les données d'authentification
+  // Gestionar la desconexión y eliminar los datos de autenticación
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setAuth({ token: null, user: null });
-    navigate('/login'); // Rediriger vers la page de connexion après la déconnexion
+    navigate('/login');
+  };
+
+  // Función para actualizar el usuario en el contexto
+  const updateUser = (updatedUser) => {
+    setAuth(prev => ({ ...prev, user: updatedUser }));
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   return (
-    <AuthContext.Provider value={{ auth, setAuth, login, logout }}>
+    <AuthContext.Provider value={{ 
+      auth, 
+      setAuth, 
+      login, 
+      logout, 
+      updateUser,
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );
